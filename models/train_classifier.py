@@ -1,24 +1,138 @@
 import sys
+import pandas as pd
+from sqlalchemy import create_engine
+import nltk
+from nltk import word_tokenize
+from nltk.stem import WordNetLemmatizer
+
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.model_selection import train_test_split, GridSearchCV
+
+from sklearn.metrics import classification_report
+
+nltk.download(["punkt", "wordnet"])
 
 
 def load_data(database_filepath):
-    pass
+    """Loads the clean dataframe from the database
+
+     Parameters
+     ----------
+     database_filepath: str
+             The path of the database
+
+     Returns
+    ----------
+    X : DataFrame
+            The independend variable containing the messages
+    y : DataFrame
+            The dependend variables containing the categories
+    category_names: list
+            The column names of y
+    """
+    engine = create_engine(f"sqlite://{database_filename}")
+    df = pd.read_sql_table("data", engine)
+    X = df.iloc[:, 1]
+    y = df.iloc[:, 4:]
+    category_names = y.columns
+    return X, Y, category_names
 
 
 def tokenize(text):
-    pass
+    """creates tokens from text messages
+
+     Parameters
+     ----------
+     text: str
+             The text to be tokenized
+
+     Returns
+    ----------
+    clean_tokens : list
+            The lemmatized tokens extracted from the text message
+
+    """
+    tokens = word_tokenize(text)
+    lemmatizer = WordNetLemmatizer()
+    clean_tokens = []
+    for tok in tokens:
+        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
+        clean_tokens.append(clean_tok)
+
+    return clean_tokens
 
 
 def build_model():
-    pass
+    """creates tokens from text messages
+
+     Parameters
+     ----------
+     text: str
+             The text to be tokenized
+
+     Returns
+    ----------
+    clean_tokens : list
+            The lemmatized tokens extracted from the text message
+
+    """
+    pipeline = Pipeline(
+        [
+            ("vect", CountVectorizer(tokenizer=tokenize)),
+            ("tfidf", TfidfTransformer()),
+            ("clf", MultiOutputClassifier(RandomForestClassifier())),
+        ]
+    )
+    parameters = {
+        "vect__max_features": (None, 5000),
+        "clf__estimator__n_estimators": [50, 200],
+        "clf__estimator__min_samples_split": [
+            2,
+            3,
+        ],
+    }
+
+    cv = GridSearchCV(pipeline, param_grid=parameters)
+    return cv
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    pass
+    """evaluates trained model with use of the test data
+
+    Parameters
+    ----------
+    model: .pickle
+            The trained RandomForest
+    X_test: DataFrame
+            The test split of independend variable containing the messages
+    Y_test: DataFrame
+            The test split of the dependend variables containing the categories
+    category_names: list
+        The column names of y
+    """
+    Y_pred = model.predict(X_test)
+    for i in range(len(category_names)):
+        print(f"Classification Metrics for column {Y_test.columns[i]}")
+        print(classification_report(y_test.iloc[:, i], Y_pred[:, i]))
 
 
 def save_model(model, model_filepath):
-    pass
+    """save the trained model as pickle
+
+    Parameters
+    ----------
+    model: .pickle
+            The trained RandomForest
+    model_filepath: str
+            The path to save the model at
+    """
+    Pkl_Filename = model_filepath
+
+    with open(Pkl_Filename, "wb") as file:
+        pickle.dump(model, file)
 
 
 def main():
