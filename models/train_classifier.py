@@ -56,6 +56,7 @@ def tokenize(text):
             The lemmatized tokens extracted from the text message
 
     """
+    text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower())
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
     clean_tokens = []
