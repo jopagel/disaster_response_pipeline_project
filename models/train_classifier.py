@@ -1,4 +1,5 @@
 import sys
+import pickle
 import pandas as pd
 from sqlalchemy import create_engine
 import nltk
@@ -33,12 +34,12 @@ def load_data(database_filepath):
     category_names: list
             The column names of y
     """
-    engine = create_engine(f"sqlite://{database_filename}")
+    engine = create_engine(f"sqlite:///{database_filepath}")
     df = pd.read_sql_table("data", engine)
     X = df.iloc[:, 1]
     y = df.iloc[:, 4:]
     category_names = y.columns
-    return X, Y, category_names
+    return X, y, category_names
 
 
 def tokenize(text):
@@ -89,10 +90,6 @@ def build_model():
     parameters = {
         "vect__max_features": (None, 5000),
         "clf__estimator__n_estimators": [50, 200],
-        "clf__estimator__min_samples_split": [
-            2,
-            3,
-        ],
     }
 
     cv = GridSearchCV(pipeline, param_grid=parameters)
@@ -116,7 +113,7 @@ def evaluate_model(model, X_test, Y_test, category_names):
     Y_pred = model.predict(X_test)
     for i in range(len(category_names)):
         print(f"Classification Metrics for column {Y_test.columns[i]}")
-        print(classification_report(y_test.iloc[:, i], Y_pred[:, i]))
+        print(classification_report(Y_test.iloc[:, i], Y_pred[:, i]))
 
 
 def save_model(model, model_filepath):

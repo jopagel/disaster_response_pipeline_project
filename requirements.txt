@@ -2,4 +2,7 @@ nltk
 pandas 
 sklearn
 sqlalchemy
+plotly
+flask
+
 

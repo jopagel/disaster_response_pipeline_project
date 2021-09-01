@@ -41,7 +41,7 @@ def clean_data(df):
             The cleaned dataframe
 
     """
-    categories = categories["categories"].str.split(";", expand=True)
+    categories = df["categories"].str.split(";", expand=True)
     row = categories.iloc[0, :]
     category_colnames = list(row.str.slice(start=0, stop=-2))
     categories.columns = category_colnames
@@ -68,7 +68,7 @@ def save_data(df, database_filename):
             The filename of the database
 
     """
-    engine = create_engine(f"sqlite://{database_filename}")
+    engine = create_engine(f"sqlite:///{database_filename}")
     df.to_sql("data", engine, index=False)
 
 
