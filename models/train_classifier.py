@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 import nltk
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
+import re
 
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
